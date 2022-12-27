@@ -1,0 +1,38 @@
+plugins {
+    id 'java'
+}
+
+group 'com.zyramc.ojvzinn'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+
+    //Repositório Spigot
+    maven {
+        url 'https://repo.codemc.org/repository/nms/'
+    }
+
+    //Reposítorio Bungee
+    maven {
+        url 'https://papermc.io/repo/repository/maven-public/'
+    }
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.0'
+    compileOnly 'org.spigotmc:spigot:1.8.8-R0.1-SNAPSHOT'
+    implementation files('C:/Users/joaov/Desktop/kCore.jar')
+    compileOnly 'io.github.waterfallmc:waterfall-api:1.18-R0.1-SNAPSHOT'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+compileJava.options.encoding = 'UTF-8'
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}

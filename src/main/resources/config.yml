@@ -1,0 +1,6 @@
+mysql:
+  host: 'localhost'
+  porta: '3306'
+  nome: ''
+  usuario: ''
+  senha: ''

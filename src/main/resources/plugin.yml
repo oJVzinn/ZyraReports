@@ -1,0 +1,6 @@
+name: ZyraReports
+version: 1.0
+author: oJVzinn
+depend:
+  - kCore
+main: com.zyramc.ojvzinn.reports.Main
