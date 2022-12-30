@@ -5,6 +5,7 @@ import com.zyramc.ojvzinn.reports.report.ReportManagerBukkit;
 import database.DataBase;
 import database.interfaces.DatabaseInterface;
 import org.bukkit.Bukkit;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -292,8 +293,21 @@ public class MySQL extends DataBase implements DatabaseInterface<MySQL> {
                     statement.close();
                 }
             }
-            statement.close();
-            rs.close();
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    try {
+                        statement.close();
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                    try {
+                        rs.close();
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }.runTaskLaterAsynchronously(Main.getInstance(), 5L);
         } catch (Exception e) {
             e.printStackTrace();
         }

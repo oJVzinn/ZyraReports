@@ -28,6 +28,12 @@ public class PluginMessageListeners implements PluginMessageListener {
                         break;
                     }
 
+                    if (type.equalsIgnoreCase("delete")) {
+                        String target = in.readUTF();
+                        ReportManagerBukkit.deleteReport(target);
+                        break;
+                    }
+
                     if (type.equalsIgnoreCase("menu")) {
                         Player player = Bukkit.getPlayer(in.readUTF());
                         String online = in.readUTF();

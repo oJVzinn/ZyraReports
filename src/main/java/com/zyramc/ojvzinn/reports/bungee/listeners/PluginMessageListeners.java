@@ -1,10 +1,12 @@
 package com.zyramc.ojvzinn.reports.bungee.listeners;
 
 import com.google.common.io.ByteArrayDataInput;
+import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.zyramc.ojvzinn.reports.bungee.Bungee;
 import com.zyramc.ojvzinn.reports.bungee.reports.ReportManager;
 import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.config.ServerInfo;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.PluginMessageEvent;
 import net.md_5.bungee.api.plugin.Listener;
@@ -51,6 +53,18 @@ public class PluginMessageListeners implements Listener {
                         ReportManager.sendCommandExecutor(player, "tp " + target);
                     }
                 }, 1L, TimeUnit.SECONDS);
+            } else if (subChannel.equalsIgnoreCase("report")) {
+                String type = in.readUTF();
+                if (type.equalsIgnoreCase("delete")) {
+                    String target = in.readUTF();
+                    ByteArrayDataOutput output = ByteStreams.newDataOutput();
+                    output.writeUTF("REPORT");
+                    output.writeUTF("DELETE");
+                    output.writeUTF(target);
+                    for (ServerInfo serverInfo : Bungee.getPlugin().getProxy().getServersCopy().values()) {
+                        serverInfo.sendData("zReports", output.toByteArray());
+                    }
+                }
             }
         }
     }

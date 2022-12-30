@@ -1,10 +1,11 @@
 package com.zyramc.ojvzinn.reports.menus;
 
+import com.zyramc.ojvzinn.reports.Main;
 import com.zyramc.ojvzinn.reports.report.ReportManagerBukkit;
 import dev.slickcollections.kiwizin.Core;
 import dev.slickcollections.kiwizin.libraries.menu.UpdatablePlayerPagedMenu;
 import dev.slickcollections.kiwizin.player.role.Role;
-import dev.slickcollections.kiwizin.utils.StringUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -30,27 +31,33 @@ public class MenuReportList extends UpdatablePlayerPagedMenu {
         previousPage = 18;
         List<ItemStack> itens = new ArrayList<>();
 
-        int i = 0;
-        for (ReportManagerBukkit reportManagerBukkit : ReportManagerBukkit.getReportsCache()) {
-            itens.add(reportManagerBukkit.getIcon(online));
-            REPORTS.put(a.get(i), reportManagerBukkit);
-            i++;
-        }
-        this.setItems(itens);
-
-        if (itens.isEmpty()) {
-            ItemStack itemStack = new ItemStack(Material.WEB);
-            ItemMeta meta = itemStack.getItemMeta();
-            meta.setDisplayName("§cLista de Reports Vazia");
-            itemStack.setItemMeta(meta);
-            this.removeSlotsWith(itemStack, 22);
-        }
-
         ItemStack itemStack = new ItemStack(Material.BARRIER);
         ItemMeta meta = itemStack.getItemMeta();
         meta.setDisplayName("§cLimpar todos os Reports");
         itemStack.setItemMeta(meta);
         this.removeSlotsWith(itemStack, 49);
+
+        ItemStack item = new ItemStack(Material.WEB);
+        ItemMeta Itemmeta = item.getItemMeta();
+        Itemmeta.setDisplayName("§cLista de Reports Vazia");
+        item.setItemMeta(Itemmeta);
+        this.removeSlotsWith(item, 22);
+
+        int i = 0;
+        for (ReportManagerBukkit reportManagerBukkit : ReportManagerBukkit.getReportsCache()) {
+            try {
+                this.removeSlotsWith(reportManagerBukkit.getIcon(online), 0);
+                this.removeSlots(0);
+                itens.add(reportManagerBukkit.getIcon(online));
+                REPORTS.put(a.get(i), reportManagerBukkit);
+                this.removeSlots(22);
+            } catch (Exception ignored) {
+                continue;
+            }
+            i++;
+        }
+
+        this.setItems(itens);
         update();
         open(player);
         register(Core.getInstance(), 20L);
@@ -60,10 +67,12 @@ public class MenuReportList extends UpdatablePlayerPagedMenu {
     public void update() {
         List<ItemStack> itens = new ArrayList<>();
         for (ReportManagerBukkit reportManagerBukkit : ReportManagerBukkit.getReportsCache()) {
-            itens.add(reportManagerBukkit.getIcon(online));
+            try {
+                this.removeSlotsWith(reportManagerBukkit.getIcon(online), 0);
+                this.removeSlots(0);
+                itens.add(reportManagerBukkit.getIcon(online));
+            } catch (Exception ignored) {}
         }
-
-        this.setItems(itens);
     }
 
     public void cancel() {
@@ -84,10 +93,9 @@ public class MenuReportList extends UpdatablePlayerPagedMenu {
                             reportManagerBukkit.teleportePlayer(player);
                             reportManagerBukkit.setLastViwer(Role.getColored(player.getName()));
                         } else if (event.getClick().isRightClick()) {
-                            ReportManagerBukkit.deleteReport(reportManagerBukkit.getTarget());
-                            player.closeInventory();
-                            new MenuReportList(player, online);
+                            ReportManagerBukkit.deleteReport(reportManagerBukkit.getTarget(), true);
                             player.sendMessage("§aReporte deletado com sucesso!");
+                            Bukkit.getScheduler().runTaskLater(Main.getInstance(), ()-> new MenuReportList(player, online), 15L);
                         }
                     } else {
                         if (event.getSlot() == 49) {

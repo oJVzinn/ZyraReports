@@ -89,10 +89,20 @@ public class ReportManagerBukkit {
     }
 
     public static void deleteReport(String target) {
-        Objects.requireNonNull(DataBase.getDatabase(MySQL.class)).deleteProfiler(target, "ProfileReports");
-        Objects.requireNonNull(DataBase.getDatabase(MySQL.class)).closeConnection();
-        Objects.requireNonNull(DataBase.getDatabase(MySQL.class)).connection = null;
-        findByTarget(StringUtils.stripColors(target)).destroy();
+        try {
+            Objects.requireNonNull(DataBase.getDatabase(MySQL.class)).deleteProfiler(target, "ProfileReports");
+            Objects.requireNonNull(DataBase.getDatabase(MySQL.class)).closeConnection();
+            Objects.requireNonNull(DataBase.getDatabase(MySQL.class)).connection = null;
+            findByTarget(StringUtils.stripColors(target)).destroy();
+        } catch (Exception ignored) {}
+    }
+
+    public static void deleteReport(String target, boolean isPluginMessage) {
+        ByteArrayDataOutput output = ByteStreams.newDataOutput();
+        output.writeUTF("REPORT");
+        output.writeUTF("DELETE");
+        output.writeUTF(target);
+        Bukkit.getServer().sendPluginMessage(Main.getInstance(), "zReports", output.toByteArray());
     }
 
     public static void deleteAllReports() {
@@ -100,6 +110,11 @@ public class ReportManagerBukkit {
             Objects.requireNonNull(DataBase.getDatabase(MySQL.class)).deleteProfiler(target, "ProfileReports");
             Objects.requireNonNull(DataBase.getDatabase(MySQL.class)).closeConnection();
             Objects.requireNonNull(DataBase.getDatabase(MySQL.class)).connection = null;
+            ByteArrayDataOutput output = ByteStreams.newDataOutput();
+            output.writeUTF("REPORT");
+            output.writeUTF("DELETE");
+            output.writeUTF(target);
+            Bukkit.getServer().sendPluginMessage(Main.getInstance(), "zReports", output.toByteArray());
         }
         REPORTS_CACHE.clear();
     }
