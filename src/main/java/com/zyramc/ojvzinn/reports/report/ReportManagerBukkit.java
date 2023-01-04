@@ -1,10 +1,13 @@
 package com.zyramc.ojvzinn.reports.report;
 
+import com.google.common.annotations.Beta;
 import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 import com.zyramc.ojvzinn.reports.Main;
 import database.DataBase;
 import database.databases.MySQL;
+import dev.slickcollections.kiwizin.database.Database;
+import dev.slickcollections.kiwizin.player.fake.FakeManager;
 import dev.slickcollections.kiwizin.player.role.Role;
 import dev.slickcollections.kiwizin.utils.StringUtils;
 import org.bukkit.Bukkit;
@@ -171,18 +174,20 @@ public class ReportManagerBukkit {
     }
 
     public ItemStack getIcon(String online) {
+        String nick = FakeManager.getFake(target) != null ? FakeManager.getFake(target) : target;
         ItemStack itemStack = new ItemStack(Material.SKULL_ITEM);
         itemStack.setDurability((short) 3);
         SkullMeta meta = (SkullMeta) itemStack.getItemMeta();
         meta.setOwner(StringUtils.stripColors(target));
-        meta.setDisplayName(Role.getColored(StringUtils.stripColors(target)));
+        meta.setDisplayName(Role.getColored(target, true) + " §e(" + Role.getPrefixed(nick) + "§e)");
         List<String> lore = new ArrayList<>();
+        lore.add("§fTotal de reports: §e§n" + totalReports);
+        lore.add("§fVisualizado por: ");
+        lore.add("§f■ §7" + lastViwer);
         lore.add("");
         lore.add("§fAutor: " + accuser);
         lore.add("§fMotivo: §a" + reason);
         lore.add("§fData do ocorrido: §a" + date);
-        lore.add("§fTotal de reports: §a" + totalReports);
-        lore.add("§fVisualizado por: §a" + lastViwer);
         lore.add("");
         lore.add("§8Ações:");
         lore.add(" §8* §7Botão esquerdo teleporta até o jogador");
@@ -206,6 +211,7 @@ public class ReportManagerBukkit {
         this.server = server;
     }
 
+    @Beta
     public void teleportePlayer(Player player) {
         ByteArrayDataOutput output = ByteStreams.newDataOutput();
         output.writeUTF("ASSISTIR");

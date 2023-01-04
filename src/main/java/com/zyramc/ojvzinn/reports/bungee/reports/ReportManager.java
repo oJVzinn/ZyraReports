@@ -20,7 +20,7 @@ public class ReportManager {
     public static void sendReportToStaffers(String autor, String target, String reason) {
         Bungee.getPlugin().getProxy().getPlayers().forEach(player -> {
             TextComponent textComponent = new TextComponent();
-            textComponent.setText("§e§lNOVO REPORT\n \n§fNick: §a" + target + "\n§fAcusado: §a" + autor + "\n§fMotivo: §a" + reason + "\n \n§eClique para ver!");
+            textComponent.setText("§e§lNOVO REPORT\n \n§fNick: §a" + autor + "\n§fAcusado: §a" + StringUtils.formatColors(target) + "\n§fMotivo: §a" + reason + "\n \n§eClique para ver!");
             textComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, TextComponent.fromLegacyText("§aClique para ver os reports")));
             textComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/reports"));
            if (player.hasPermission("sreport.see")) {
@@ -33,11 +33,10 @@ public class ReportManager {
         ByteArrayDataOutput byteArrayDataInput = ByteStreams.newDataOutput();
         byteArrayDataInput.writeUTF("REPORT");
         byteArrayDataInput.writeUTF("NEW");
-        byteArrayDataInput.writeUTF(target);
+        byteArrayDataInput.writeUTF(StringUtils.formatColors(target));
         byteArrayDataInput.writeUTF(author);
         byteArrayDataInput.writeUTF(date);
         byteArrayDataInput.writeUTF(reason);
-        byteArrayDataInput.writeUTF(Bungee.getPlugin().getProxy().getPlayer(StringUtils.stripColors(target)).getServer().getInfo().getName());
         for (ServerInfo serverInfo : Bungee.getPlugin().getProxy().getServersCopy().values()) {
             serverInfo.sendData("zReports", byteArrayDataInput.toByteArray());
         }
@@ -59,5 +58,26 @@ public class ReportManager {
         byteArrayDataInput.writeUTF(command);
         byteArrayDataInput.writeUTF(player.getName());
         player.getServer().sendData("zReports", byteArrayDataInput.toByteArray());
+    }
+
+    public static void sendMessageToReporter(String acusado, String message) {
+        ByteArrayDataOutput byteArrayDataInput = ByteStreams.newDataOutput();
+        byteArrayDataInput.writeUTF("REPORT");
+        byteArrayDataInput.writeUTF("MESSAGE");
+        byteArrayDataInput.writeUTF(acusado);
+        byteArrayDataInput.writeUTF(message);
+        for (ServerInfo serverInfo : Bungee.getPlugin().getProxy().getServersCopy().values()) {
+            serverInfo.sendData("zReports", byteArrayDataInput.toByteArray());
+        }
+    }
+
+    public static void sendDeletereport(String acusado) {
+        ByteArrayDataOutput byteArrayDataInput = ByteStreams.newDataOutput();
+        byteArrayDataInput.writeUTF("REPORT");
+        byteArrayDataInput.writeUTF("DELETE");
+        byteArrayDataInput.writeUTF(acusado);
+        for (ServerInfo serverInfo : Bungee.getPlugin().getProxy().getServersCopy().values()) {
+            serverInfo.sendData("zReports", byteArrayDataInput.toByteArray());
+        }
     }
 }

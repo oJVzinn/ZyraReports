@@ -4,6 +4,7 @@ import com.google.common.io.ByteArrayDataInput;
 import com.google.common.io.ByteStreams;
 import com.zyramc.ojvzinn.reports.menus.MenuReportList;
 import com.zyramc.ojvzinn.reports.report.ReportManagerBukkit;
+import dev.slickcollections.kiwizin.utils.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.messaging.PluginMessageListener;
@@ -22,9 +23,8 @@ public class PluginMessageListeners implements PluginMessageListener {
                         String author = in.readUTF();
                         String date = in.readUTF();
                         String reason = in.readUTF();
-                        String servidor = in.readUTF();
                         ReportManagerBukkit reportManagerBukkit = ReportManagerBukkit.createReport(target, author, date, reason);
-                        reportManagerBukkit.setServer(servidor);
+                        reportManagerBukkit.setServer("");
                         break;
                     }
 
@@ -39,6 +39,21 @@ public class PluginMessageListeners implements PluginMessageListener {
                         String online = in.readUTF();
                         new MenuReportList(player, online);
                         break;
+                    }
+
+                    if (type.equalsIgnoreCase("message")) {
+                        String acusado = in.readUTF();
+                        String message = in.readUTF();
+
+                        if (ReportManagerBukkit.findByTarget(StringUtils.stripColors(acusado)) != null) {
+                            try {
+                                Player reporter = Bukkit.getPlayer(StringUtils.stripColors(ReportManagerBukkit.findByTarget(acusado).getAccuser()));
+                                reporter.sendMessage(StringUtils.formatColors(message));
+                                break;
+                            } catch (Exception e) {
+                                break;
+                            }
+                        }
                     }
                     break;
                 }
