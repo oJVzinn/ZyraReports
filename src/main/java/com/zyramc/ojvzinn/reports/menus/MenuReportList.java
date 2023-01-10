@@ -3,7 +3,7 @@ package com.zyramc.ojvzinn.reports.menus;
 import com.zyramc.ojvzinn.reports.Main;
 import com.zyramc.ojvzinn.reports.report.ReportManagerBukkit;
 import dev.slickcollections.kiwizin.Core;
-import dev.slickcollections.kiwizin.libraries.menu.UpdatablePlayerPagedMenu;
+import dev.slickcollections.kiwizin.libraries.menu.PagedPlayerMenu;
 import dev.slickcollections.kiwizin.player.role.Role;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -18,7 +18,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.*;
 
-public class MenuReportList extends UpdatablePlayerPagedMenu {
+public class MenuReportList extends PagedPlayerMenu {
 
     private final Map<Integer, ReportManagerBukkit> REPORTS = new HashMap<>();
     private final String online;
@@ -58,25 +58,11 @@ public class MenuReportList extends UpdatablePlayerPagedMenu {
         }
 
         this.setItems(itens);
-        update();
         open(player);
-        register(Core.getInstance(), 20L);
-    }
-
-    @Override
-    public void update() {
-        List<ItemStack> itens = new ArrayList<>();
-        for (ReportManagerBukkit reportManagerBukkit : ReportManagerBukkit.getReportsCache()) {
-            try {
-                this.removeSlotsWith(reportManagerBukkit.getIcon(online), 0);
-                this.removeSlots(0);
-                itens.add(reportManagerBukkit.getIcon(online));
-            } catch (Exception ignored) {}
-        }
+        register(Core.getInstance());
     }
 
     public void cancel() {
-        super.cancel();
         HandlerList.unregisterAll(this);
     }
 
@@ -95,13 +81,12 @@ public class MenuReportList extends UpdatablePlayerPagedMenu {
                         } else if (event.getClick().isRightClick()) {
                             ReportManagerBukkit.deleteReport(reportManagerBukkit.getTarget(), true);
                             player.sendMessage("§aReporte deletado com sucesso!");
-                            Bukkit.getScheduler().runTaskLater(Main.getInstance(), ()-> new MenuReportList(player, online), 15L);
+                            Bukkit.getScheduler().runTaskLater(Main.getInstance(), ()-> new MenuReportList(player, online), 20L);
                         }
                     } else {
                         if (event.getSlot() == 49) {
                             ReportManagerBukkit.deleteAllReports();
-                            player.closeInventory();
-                            new MenuReportList(player, online);
+                            Bukkit.getScheduler().runTaskLater(Main.getInstance(), ()-> new MenuReportList(player, online), 20L);
                             player.sendMessage("§aLista de reports limpa com sucesso!");
                         }
                     }

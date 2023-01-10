@@ -34,9 +34,10 @@ public class ReportManagerBukkit {
     private String lastViwer = "Ninguém";
 
     public static void setupReports() {
-        for (ReportManagerBukkit reportManagerBukkit : Objects.requireNonNull(DataBase.getDatabase(MySQL.class)).getAllReports("ProfileReports")) {
+        List<ReportManagerBukkit> reports = Objects.requireNonNull(DataBase.getDatabase(MySQL.class)).getAllReports("ProfileReports");
+        for (ReportManagerBukkit reportManagerBukkit : reports) {
             ReportManagerBukkit a = createReport(reportManagerBukkit.getTarget(), reportManagerBukkit.accuser, reportManagerBukkit.getDate(), reportManagerBukkit.getReason(), true);
-            a.setLastViwer(reportManagerBukkit.getLastViwer());
+            a.setLastViwer(reportManagerBukkit.getLastViwer(), true);
         }
         Objects.requireNonNull(DataBase.getDatabase(MySQL.class)).closeConnection();
         Objects.requireNonNull(DataBase.getDatabase(MySQL.class)).connection = null;
@@ -55,10 +56,10 @@ public class ReportManagerBukkit {
         }
 
         ReportManagerBukkit reportManagerBukkit = new ReportManagerBukkit(target, author, date, reason, totalReportsForPlayer);
-        Objects.requireNonNull(DataBase.getDatabase(MySQL.class)).addStatusDefaultPlayer(target, "ProfileReports");
         new BukkitRunnable() {
             @Override
             public void run() {
+                Objects.requireNonNull(DataBase.getDatabase(MySQL.class)).addStatusDefaultPlayer(target, "ProfileReports");
                 Objects.requireNonNull(DataBase.getDatabase(MySQL.class)).updateStatusPlayer(target, "ProfileReports", "AUTHOR", author);
                 Objects.requireNonNull(DataBase.getDatabase(MySQL.class)).updateStatusPlayer(target, "ProfileReports", "DATE ", date);
                 Objects.requireNonNull(DataBase.getDatabase(MySQL.class)).updateStatusPlayer(target, "ProfileReports", "REASON ", reason);
@@ -67,7 +68,7 @@ public class ReportManagerBukkit {
                 Objects.requireNonNull(DataBase.getDatabase(MySQL.class)).closeConnection();
                 Objects.requireNonNull(DataBase.getDatabase(MySQL.class)).connection = null;
             }
-        }.runTaskLater(Main.getInstance(), 20L);
+        }.runTaskLaterAsynchronously(Main.getInstance(), 15L);
         if (findByTarget(StringUtils.stripColors(target)) == null) {
             REPORTS_CACHE.add(reportManagerBukkit);
         }
@@ -93,10 +94,26 @@ public class ReportManagerBukkit {
 
     public static void deleteReport(String target) {
         try {
-            Objects.requireNonNull(DataBase.getDatabase(MySQL.class)).deleteProfiler(target, "ProfileReports");
-            Objects.requireNonNull(DataBase.getDatabase(MySQL.class)).closeConnection();
-            Objects.requireNonNull(DataBase.getDatabase(MySQL.class)).connection = null;
-            findByTarget(StringUtils.stripColors(target)).destroy();
+            if (findByTarget(StringUtils.stripColors(target)) != null) {
+                new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        if (findByTarget(StringUtils.stripColors(target)) != null) {
+                            Objects.requireNonNull(DataBase.getDatabase(MySQL.class)).deleteProfiler(target, "ProfileReports");
+                            Objects.requireNonNull(DataBase.getDatabase(MySQL.class)).closeConnection();
+                            Objects.requireNonNull(DataBase.getDatabase(MySQL.class)).connection = null;
+                        }
+                    }
+                }.runTaskLaterAsynchronously(Main.getInstance(), 0L);
+                new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        if (findByTarget(StringUtils.stripColors(target)) != null) {
+                            findByTarget(StringUtils.stripColors(target)).destroy();
+                        }
+                    }
+                }.runTaskLater(Main.getInstance(), 5L);
+            }
         } catch (Exception ignored) {}
     }
 
@@ -110,14 +127,7 @@ public class ReportManagerBukkit {
 
     public static void deleteAllReports() {
         for (String target : getTargets()) {
-            Objects.requireNonNull(DataBase.getDatabase(MySQL.class)).deleteProfiler(target, "ProfileReports");
-            Objects.requireNonNull(DataBase.getDatabase(MySQL.class)).closeConnection();
-            Objects.requireNonNull(DataBase.getDatabase(MySQL.class)).connection = null;
-            ByteArrayDataOutput output = ByteStreams.newDataOutput();
-            output.writeUTF("REPORT");
-            output.writeUTF("DELETE");
-            output.writeUTF(target);
-            Bukkit.getServer().sendPluginMessage(Main.getInstance(), "zReports", output.toByteArray());
+            deleteReport(target);
         }
         REPORTS_CACHE.clear();
     }
@@ -173,13 +183,17 @@ public class ReportManagerBukkit {
         Objects.requireNonNull(DataBase.getDatabase(MySQL.class)).connection = null;
     }
 
+    public void setLastViwer(String lastViwer, boolean cache) {
+        this.lastViwer = lastViwer;
+    }
+
     public ItemStack getIcon(String online) {
         String nick = FakeManager.getFake(target) != null ? FakeManager.getFake(target) : target;
         ItemStack itemStack = new ItemStack(Material.SKULL_ITEM);
         itemStack.setDurability((short) 3);
         SkullMeta meta = (SkullMeta) itemStack.getItemMeta();
         meta.setOwner(StringUtils.stripColors(target));
-        meta.setDisplayName(Role.getColored(target, true) + " §e(" + Role.getPrefixed(nick) + "§e)");
+        meta.setDisplayName(StringUtils.formatColors(Role.getColored(target, true) + " §e(" + Role.getPrefixed(nick) + "§e)"));
         List<String> lore = new ArrayList<>();
         lore.add("§fTotal de reports: §e§n" + totalReports);
         lore.add("§fVisualizado por: ");

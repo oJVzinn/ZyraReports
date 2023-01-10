@@ -268,9 +268,7 @@ public class MySQL extends DataBase implements DatabaseInterface<MySQL> {
             PreparedStatement preparedStatement = getConnection().prepareStatement("DELETE FROM " + table + " WHERE NAME = '" + player + "'");
             preparedStatement.executeUpdate();
             preparedStatement.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (Exception ignored) {}
     }
 
     public List<ReportManagerBukkit> getAllReports(String table) {
@@ -287,27 +285,14 @@ public class MySQL extends DataBase implements DatabaseInterface<MySQL> {
                 String totalreports = rs.getString("TOTALREPORTS");
                 String lastviewer = rs.getString("LASTVIEWER");
                 ReportManagerBukkit manager = new ReportManagerBukkit(name, author, data, reaon, Long.parseLong(totalreports));
-                manager.setLastViwer(lastviewer);
+                manager.setLastViwer(lastviewer, true);
                 reports.add(manager);
-                if (!statement.isClosed()) {
-                    statement.close();
-                }
             }
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    try {
-                        statement.close();
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    }
-                    try {
-                        rs.close();
-                    } catch (SQLException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }.runTaskLaterAsynchronously(Main.getInstance(), 5L);
+
+            if (connection.isClosed()) {
+                statement.close();
+                rs.close();
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
